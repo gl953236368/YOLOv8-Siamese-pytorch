@@ -1,7 +1,8 @@
 import math
-import os
+import os,io
 import random
-from functools import partial
+import time
+from functools import partial, wraps
 from random import shuffle
 
 import numpy as np
@@ -99,12 +100,16 @@ def letterbox_image(image, size, letterbox_image):
 #   将图像转换成RGB图像，防止灰度图在预测时报错。
 #   代码仅仅支持RGB图像的预测，所有其它类型的图像都会转化成RGB
 #---------------------------------------------------------#
-def cvtColor(image):
-    if len(np.shape(image)) == 3 and np.shape(image)[2] == 3:
-        return image 
+def cvtColor(image_bytes:bytes = None):
+    if isinstance(image_bytes, bytes):
+        image = Image.open(io.BytesIO(image_bytes))
     else:
-        image = image.convert('RGB')
-        return image 
+        image = image_bytes
+
+    if len(np.shape(image)) == 3 and np.shape(image)[2] == 3:
+        return image
+    else:
+        return image.convert('RGB')
 
 #----------------------------------------#
 #   预处理训练图片
@@ -181,3 +186,35 @@ def download_weights(backbone, model_dir="./model_data"):
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
     load_state_dict_from_url(url, model_dir)
+
+
+def get_root():
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    root_path = os.path.abspath(os.path.join(current_path, '..'))
+    return root_path
+
+
+def cost_time(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        print(f"{func.__name__} 耗时:{time.time() - start_time}")
+        return result
+    return wrapper
+
+
+def image2bytes(path):
+    img_bytes = io.BytesIO()
+    if isinstance(path, str):
+        image = Image.open(path)
+    else:
+        image = path
+    # image = image.convert("RGB")
+    image.save(img_bytes, format="JPEG")
+    bytes_ = img_bytes.getvalue()
+    return bytes_
+
+
+if __name__ == '__main__':
+    get_root()

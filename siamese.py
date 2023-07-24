@@ -5,7 +5,7 @@ import torch.backends.cudnn as cudnn
 from PIL import Image
 
 from nets.siamese import Siamese as siamese
-from utils.utils import letterbox_image, preprocess_input, cvtColor, show_config
+from utils.utils import letterbox_image, preprocess_input, cvtColor, show_config, get_root
 
 
 #---------------------------------------------------#
@@ -17,7 +17,7 @@ class Siamese(object):
         #   使用自己训练好的模型进行预测一定要修改model_path
         #   model_path指向logs文件夹下的权值文件
         #-----------------------------------------------------#
-        "model_path"        : 'model_data/Omniglot_vgg.pth',
+        "model_path"        : get_root()+ '/model_data/siamese_model/72best_epoch_weights.pth',
         #-----------------------------------------------------#
         #   输入图片的大小。
         #-----------------------------------------------------#
@@ -31,7 +31,7 @@ class Siamese(object):
         #   是否使用Cuda
         #   没有GPU可以设置成False
         #-------------------------------#
-        "cuda"              : True
+        "cuda"              : False
     }
 
     @classmethod
@@ -89,7 +89,7 @@ class Siamese(object):
     #---------------------------------------------------#
     #   检测图片
     #---------------------------------------------------#
-    def detect_image(self, image_1, image_2):
+    def detect_image(self, image_1, image_2, is_show=False):
         #---------------------------------------------------------#
         #   在这里将图像转换成RGB图像，防止灰度图在预测时报错。
         #---------------------------------------------------------#
@@ -125,11 +125,12 @@ class Siamese(object):
             output = self.net([photo_1, photo_2])[0]
             output = torch.nn.Sigmoid()(output)
 
-        plt.subplot(1, 2, 1)
-        plt.imshow(np.array(image_1))
+        if is_show:
+            plt.subplot(1, 2, 1)
+            plt.imshow(np.array(image_1))
 
-        plt.subplot(1, 2, 2)
-        plt.imshow(np.array(image_2))
-        plt.text(-12, -12, 'Similarity:%.3f' % output, ha='center', va= 'bottom',fontsize=11)
-        plt.show()
+            plt.subplot(1, 2, 2)
+            plt.imshow(np.array(image_2))
+            plt.text(-12, -12, 'Similarity:%.3f' % output, ha='center', va= 'bottom',fontsize=11)
+            plt.show()
         return output

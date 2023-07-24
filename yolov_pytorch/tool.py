@@ -2,7 +2,7 @@ from PIL import Image
 import os
 import shutil
 
-from imageHelper import recognition_location
+from imageHelper import recognition_location, recognition_char
 
 """
     构造siamese所需要的样本
